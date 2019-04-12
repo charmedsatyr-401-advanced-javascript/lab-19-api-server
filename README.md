@@ -238,7 +238,7 @@ This module defines a mongoose schema `books` with the following properties:
 * `SECRET` - The key the application uses for JWT token signing
 * `SINGLE_USE_TOKENS` - Boolean for whether single use tokens are issued
 * `TOKEN_EXPIRE` - The amount of time before JWT tokens expire, expressed in seconds or a string describing a time span [zeit/ms](https://github.com/zeit/ms)
-* `QUEUE_SERVER` - The full URL and port to which publications to the `Q` Message Queue should be directed.
+* `Q_SERVER` - The full URL and port to which publications to the `Q` Message Queue should be directed.
 
 #### Running the app
 * Start a MongoDB database on your local machine that uses the `data` folder.

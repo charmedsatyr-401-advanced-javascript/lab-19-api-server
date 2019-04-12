@@ -251,7 +251,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="auth_auth-admin.router.js.html">auth/auth-admin.router.js</a>, <a href="auth_auth-admin.router.js.html#line58">line 58</a>
+        <a href="auth_auth-admin.router.js.html">auth/auth-admin.router.js</a>, <a href="auth_auth-admin.router.js.html#line44">line 44</a>
     </li></ul></dd>
     
 
@@ -432,7 +432,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="auth_auth-admin.router.js.html">auth/auth-admin.router.js</a>, <a href="auth_auth-admin.router.js.html#line76">line 76</a>
+        <a href="auth_auth-admin.router.js.html">auth/auth-admin.router.js</a>, <a href="auth_auth-admin.router.js.html#line62">line 62</a>
     </li></ul></dd>
     
 
@@ -613,7 +613,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="auth_auth-admin.router.js.html">auth/auth-admin.router.js</a>, <a href="auth_auth-admin.router.js.html#line106">line 106</a>
+        <a href="auth_auth-admin.router.js.html">auth/auth-admin.router.js</a>, <a href="auth_auth-admin.router.js.html#line92">line 92</a>
     </li></ul></dd>
     
 
@@ -656,6 +656,8 @@
 
 <div class="description">
     Create a new record
+Publish the request `url` and `body` as a `create` event
+to the `database` namespace of the message queue
 </div>
 
 
@@ -794,7 +796,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="api_v1.router.js.html">api/v1.router.js</a>, <a href="api_v1.router.js.html#line50">line 50</a>
+        <a href="api_v1.router.js.html">api/v1.router.js</a>, <a href="api_v1.router.js.html#line61">line 61</a>
     </li></ul></dd>
     
 
@@ -837,6 +839,9 @@
 
 <div class="description">
     Delete a record
+Publish the request `url` and `id` parameter as
+a `delete` event to the `database` namespace of the
+message queue
 </div>
 
 
@@ -975,7 +980,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="api_v1.router.js.html">api/v1.router.js</a>, <a href="api_v1.router.js.html#line100">line 100</a>
+        <a href="api_v1.router.js.html">api/v1.router.js</a>, <a href="api_v1.router.js.html#line123">line 123</a>
     </li></ul></dd>
     
 
@@ -1157,7 +1162,7 @@ This is useful for testing the `./src/middleware/500.js` export
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="auth_auth-admin.router.js.html">auth/auth-admin.router.js</a>, <a href="auth_auth-admin.router.js.html#line28">line 28</a>
+        <a href="auth_auth-admin.router.js.html">auth/auth-admin.router.js</a>, <a href="auth_auth-admin.router.js.html#line14">line 14</a>
     </li></ul></dd>
     
 
@@ -1200,6 +1205,8 @@ This is useful for testing the `./src/middleware/500.js` export
 
 <div class="description">
     Get all or one record
+Publish the request `url` and `id` parameter as a `read`
+event to the `database` namespace of the message queue
 </div>
 
 
@@ -1338,7 +1345,7 @@ This is useful for testing the `./src/middleware/500.js` export
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="api_v1.router.js.html">api/v1.router.js</a>, <a href="api_v1.router.js.html#line34">line 34</a>
+        <a href="api_v1.router.js.html">api/v1.router.js</a>, <a href="api_v1.router.js.html#line41">line 41</a>
     </li></ul></dd>
     
 
@@ -1519,7 +1526,7 @@ This is useful for testing the `./src/middleware/500.js` export
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="auth_auth-admin.router.js.html">auth/auth-admin.router.js</a>, <a href="auth_auth-admin.router.js.html#line41">line 41</a>
+        <a href="auth_auth-admin.router.js.html">auth/auth-admin.router.js</a>, <a href="auth_auth-admin.router.js.html#line27">line 27</a>
     </li></ul></dd>
     
 
@@ -1562,6 +1569,8 @@ This is useful for testing the `./src/middleware/500.js` export
 
 <div class="description">
     Display a home page
+Publish the request `url` as a `read` event to the
+`database` namespace of the message queue
 </div>
 
 
@@ -1700,7 +1709,7 @@ This is useful for testing the `./src/middleware/500.js` export
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="api_v1.router.js.html">api/v1.router.js</a>, <a href="api_v1.router.js.html#line22">line 22</a>
+        <a href="api_v1.router.js.html">api/v1.router.js</a>, <a href="api_v1.router.js.html#line25">line 25</a>
     </li></ul></dd>
     
 
@@ -1743,6 +1752,8 @@ This is useful for testing the `./src/middleware/500.js` export
 
 <div class="description">
     Sends a custom 404 response
+Publishes the url as an `error` event to the
+`database` namespace of the message queue
 </div>
 
 
@@ -1881,7 +1892,7 @@ This is useful for testing the `./src/middleware/500.js` export
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="middleware_404.js.html">middleware/404.js</a>, <a href="middleware_404.js.html#line15">line 15</a>
+        <a href="middleware_404.js.html">middleware/404.js</a>, <a href="middleware_404.js.html#line20">line 20</a>
     </li></ul></dd>
     
 
@@ -1924,6 +1935,8 @@ This is useful for testing the `./src/middleware/500.js` export
 
 <div class="description">
     Error 500 handler - Returns a JSON object on a server error
+Publishes the url and error message as an `error` event to the
+`database` namespace of the message queue
 </div>
 
 
@@ -2085,7 +2098,7 @@ This is useful for testing the `./src/middleware/500.js` export
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="middleware_500.js.html">middleware/500.js</a>, <a href="middleware_500.js.html#line16">line 16</a>
+        <a href="middleware_500.js.html">middleware/500.js</a>, <a href="middleware_500.js.html#line21">line 21</a>
     </li></ul></dd>
     
 
@@ -2312,6 +2325,10 @@ In the event the model is not found, node will throw a "MODULE_NOT_FOUND" error 
 
 <div class="description">
     Patch a new record - does not upsert
+Update a record - upserts if the record does not exist
+Publish the request `url`, `body`, and `id` parameter as
+an `update` event to the `database` namespace of the
+message queue
 </div>
 
 
@@ -2450,7 +2467,7 @@ In the event the model is not found, node will throw a "MODULE_NOT_FOUND" error 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="api_v1.router.js.html">api/v1.router.js</a>, <a href="api_v1.router.js.html#line83">line 83</a>
+        <a href="api_v1.router.js.html">api/v1.router.js</a>, <a href="api_v1.router.js.html#line101">line 101</a>
     </li></ul></dd>
     
 
@@ -2493,10 +2510,12 @@ In the event the model is not found, node will throw a "MODULE_NOT_FOUND" error 
 
 <div class="description">
     Generate a random record for testing purposes
-TODO: Currently hardcoded to use the `book` model's attributes but could be
-made more dynamic through dynamic key and value-type setting
-based on the model's Mongoose schema.
-BETTER: Similar functionality could be added through a static method on each model.
+Publish the request `url` and the `record` in a
+`create` event to the `database` namespace of the message queue
+TODO: Currently hardcoded to use the `book` model's attributes but
+could be made more dynamic through dynamic key and value-type
+setting based on the model's Mongoose schema.
+BETTER: Similar functionality could be added through a static method * on each model.
 </div>
 
 
@@ -2635,7 +2654,7 @@ BETTER: Similar functionality could be added through a static method on each mod
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="api_v1-admin.router.js.html">api/v1-admin.router.js</a>, <a href="api_v1-admin.router.js.html#line22">line 22</a>
+        <a href="api_v1-admin.router.js.html">api/v1-admin.router.js</a>, <a href="api_v1-admin.router.js.html#line25">line 25</a>
     </li></ul></dd>
     
 
@@ -2678,6 +2697,9 @@ BETTER: Similar functionality could be added through a static method on each mod
 
 <div class="description">
     Update a record - upserts if the record does not exist
+Publish the request `url`, `body`, and `id` parameter as
+an `update` event to the `database` namespace of the
+message queue
 </div>
 
 
@@ -2816,7 +2838,7 @@ BETTER: Similar functionality could be added through a static method on each mod
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="api_v1.router.js.html">api/v1.router.js</a>, <a href="api_v1.router.js.html#line66">line 66</a>
+        <a href="api_v1.router.js.html">api/v1.router.js</a>, <a href="api_v1.router.js.html#line80">line 80</a>
     </li></ul></dd>
     
 
@@ -2866,7 +2888,7 @@ BETTER: Similar functionality could be added through a static method on each mod
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Apr 07 2019 20:26:33 GMT-0700 (Pacific Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Apr 12 2019 09:47:25 GMT-0700 (Pacific Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

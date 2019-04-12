@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: auth/users.schema.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: auth/users.schema.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>'use strict';
+
+/**
+ * users model - a mongoose schema with custom methods as validation helpers
+ * @module auth/users.model
+ */
+
+const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+require('./roles.schema.js');
+
+// A set of used single-used tokens
+const usedTokens = new Set();
+
+// The base `users` schema is prepared to display virtual joins
+const users = new mongoose.Schema(
+  {
+    username: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    email: { type: String },
+    role: { type: String, default: 'user', enum: ['admin', 'editor', 'user'] },
+  },
+  { toObject: { virtuals: true }, toJSON: { virtuals: true } }
+);
+
+/**
+ * Create a virtual `column` on `users` that corresponds to the values of
+ * that user's role's `capabilities` in the `roles` schema
+ **/
+users.virtual('capabilities', {
+  ref: 'roles',
+  localField: 'role',
+  foreignField: 'role',
+  justOne: false,
+});
+
+/**
+ * These `users.pre` hooks ensure users have `capabilities` whenever
+ * the `user` is accessed.
+ */
+users.pre('find', function() {
+  try {
+    this.populate('capabilities');
+  } catch (err) {
+    console.error(err);
+  }
+});
+
+users.pre('findOne', function() {
+  try {
+    this.populate('capabilities');
+  } catch (err) {
+    console.error(err);
+  }
+});
+
+users.pre('findById', function() {
+  try {
+    this.populate('capabilities');
+  } catch (err) {
+    console.error(err);
+  }
+});
+
+users.pre('save', function() {
+  try {
+    this.populate('capabilities');
+  } catch (err) {
+    console.error(err);
+  }
+});
+
+/**
+ * A pre-save hook for the `users` object that
+ * hashes passwords with `bcrypt` before they
+ * are saved to the database.
+ * @function
+ * @name users.pre
+ * @param next {function} Express middleware function
+ */
+users.pre('save', function(next) {
+  bcrypt
+    .hash(this.password, 10)
+    .then(hashedPassword => {
+      this.password = hashedPassword;
+      next();
+    })
+    .catch(error => {
+      throw error;
+    });
+});
+
+/**
+ * A static class method that queries the database for a user
+ * and authenticates their password using the `bcrypt`-based
+ * `comparePassword` method.
+ * @function
+ * @name authenticateBasic
+ * @param auth {object} Receives the `user` object
+ */
+users.statics.authenticateBasic = function(auth) {
+  const query = { username: auth.username };
+  return this.findOne(query)
+    .then(user => user &amp;&amp; user.comparePassword(auth.password))
+    .catch(console.error);
+};
+
+/**
+ * Compare a plain text password against the hashed one we have saved
+ * @function
+ * @name comparePassword
+ * @param password {string} The password submitted from the client
+ **/
+users.methods.comparePassword = function(password) {
+  return bcrypt.compare(password, this.password).then(valid => (valid ? this : null));
+};
+
+/**
+ * This function supports single-use tokens, tokens with an expiration
+ * time, and permanent access keys.
+ * @function
+ * @name authenticateToken
+ * @param token {string} The user's authentication token
+ */
+users.statics.authenticateToken = function(token) {
+  console.log('Authenticating Token:', token);
+  if (usedTokens.has(token)) {
+    return Promise.reject('Invalid Token');
+  }
+
+  try {
+    const parsedToken = jwt.verify(token, process.env.SECRET);
+    process.env.SINGLE_USE_TOKENS &amp;&amp; parsedToken.type !== 'key' &amp;&amp; usedTokens.add(token);
+    const query = { _id: parsedToken.id };
+    return this.findOne(query);
+  } catch (err) {
+    throw new Error('Invalid Token');
+  }
+};
+
+/**
+ * Use the user's email from their chosen OAuth service
+ * to create a new user in the database.
+ * This currently returns an error if the user's email is not available.
+ * @function
+ * @name createFromOauth
+ * @param email {string} The user's email address
+ */
+users.statics.createFromOauth = function(email) {
+  if (!email) {
+    return Promise.reject('Validation Error');
+  }
+  return (
+    this.findOne({ email })
+      .then(user => {
+        if (!user) {
+          throw new Error('User Not Found');
+        }
+        return user;
+      })
+      // eslint-disable-next-line no-unused-vars
+      .catch(error => {
+        let username = email;
+        let password = 'none';
+        return this.create({ username, password, email });
+      })
+  );
+};
+
+/**
+ * Generate a JWT from the user id and a secret
+ * @function
+ * @name generateToken
+ * @param type {string} Specify a type of token to generate
+ **/
+users.methods.generateToken = function(type) {
+  const tokenData = {
+    id: this._id,
+    capabilities:
+      (this.capabilities &amp;&amp; this.capabilities.capabilities) ||
+      (this.capabilities &amp;&amp; this.capabilities[0] &amp;&amp; this.capabilities[0].capabilities) ||
+      [],
+    type: type || 'user',
+  };
+  const options = {};
+  if (type !== 'key' &amp;&amp; !!process.env.TOKEN_EXPIRE) {
+    options.expiresIn = process.env.TOKEN_EXPIRE;
+  }
+  return jwt.sign(tokenData, process.env.SECRET, options);
+};
+
+/**
+ * Calls the `generateToken` method with the argument `key`
+ * and returns the result.
+ * @function
+ * @name generateKey
+ */
+users.methods.generateKey = function() {
+  return this.generateToken('key');
+};
+
+/**
+ * Check the user's capabilities to determine if they are authorized
+ * @function
+ * @name can
+ * @param capability {string} The capability required for authorization
+ */
+users.methods.can = function(capability) {
+  const capabilities = this.capabilities.capabilities || this.capabilities[0].capabilities;
+  return capabilities.includes(capability);
+};
+
+module.exports = mongoose.model('users', users);
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="auth_users.module_model.html">model</a></li><li><a href="module-auth_middleware.html">auth/middleware</a></li><li><a href="module-auth_router.html">auth/router</a></li><li><a href="module-middleware_404.html">middleware/404</a></li><li><a href="module-middleware_error.html">middleware/error</a></li><li><a href="module-middleware_model-finder.html">middleware/model-finder</a></li><li><a href="module-src_server.html">src/server</a></li></ul><h3>Classes</h3><ul><li><a href="BooksModel.html">BooksModel</a></li><li><a href="ModelClass.html">ModelClass</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addRole">addRole</a></li><li><a href="global.html#autoPopulateRoles">autoPopulateRoles</a></li><li><a href="global.html#autoPopulateUsers">autoPopulateUsers</a></li><li><a href="global.html#createRecord">createRecord</a></li><li><a href="global.html#deleteRecord">deleteRecord</a></li><li><a href="global.html#forceErr">forceErr</a></li><li><a href="global.html#getAll">getAll</a></li><li><a href="global.html#getUsers">getUsers</a></li><li><a href="global.html#home">home</a></li><li><a href="global.html#patchRecord">patchRecord</a></li><li><a href="global.html#randomRecord">randomRecord</a></li><li><a href="global.html#updateRecord">updateRecord</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Apr 07 2019 20:26:33 GMT-0700 (Pacific Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: auth/auth-admin.router.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: auth/auth-admin.router.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>'use strict';
+
+const router = require('express').Router();
+const auth = require('../auth/middleware.js');
+const Roles = require('../auth/roles.schema.js');
+const Users = require('../auth/users.schema.js');
+
+router.get('/error', auth('read'), auth('create'), auth('update'), auth('delete'), forceErr);
+router.get('/users', auth('read'), auth('create'), auth('update'), auth('delete'), getUsers);
+router.post('/roles', auth('read'), auth('create'), auth('update'), auth('delete'), addRole);
+router.post(
+  '/autopopulate-roles',
+  auth('read'),
+  auth('create'),
+  auth('update'),
+  auth('delete'),
+  autoPopulateRoles
+);
+router.post(
+  '/autopopulate-users',
+  auth('read'),
+  auth('create'),
+  auth('update'),
+  auth('delete'),
+  autoPopulateUsers
+);
+
+/**
+ * Force error handling
+ * This is useful for testing the `./src/middleware/500.js` export
+ * @function
+ * @name forceErr
+ * @param req {object} Express request object
+ * @param res {object} Express response object
+ * @param next {function} Express middleware function
+ **/
+function forceErr(req, res, next) {
+  next('Error!');
+}
+
+/**
+ * Console.log all `Users`
+ * @function
+ * @name getUsers
+ * @param req {object} Express request object
+ * @param res {object} Express response object
+ * @param next {function} Express middleware function
+ **/
+function getUsers(req, res, next) {
+  Users.find().then(users => {
+    users.forEach(user => {
+      console.log(user);
+    });
+  });
+  res.status(200).send('Accessing `/users`...');
+}
+
+/**
+ * Add a `role` with custom values to the `Roles` collection
+ * @function
+ * @name addRole
+ * @param req {object} Express request object
+ * @param res {object} Express response object
+ * @param next {function} Express middleware function
+ **/
+function addRole(req, res, next) {
+  const role = new Roles(req.body);
+  role
+    .save()
+    .then(role => {
+      res.send(role);
+    })
+    .catch(next);
+}
+
+/**
+ * Autopopulate `Roles` collection with standard values
+ * @function
+ * @name autoPopulateRoles
+ * @param req {object} Express request object
+ * @param res {object} Express response object
+ * @param next {function} Express middleware function
+ **/
+function autoPopulateRoles(req, res, next) {
+  const admin = { role: 'admin', capabilities: ['create', 'read', 'update', 'delete'] };
+  const editor = { role: 'editor', capabilities: ['create', 'read', 'update'] };
+  const user = { role: 'user', capabilities: ['read'] };
+
+  [user, editor, admin].forEach(role => {
+    Roles.findOne({ role: role.role })
+      .then(result => {
+        if (!result) {
+          const r = new Roles(role);
+          r.save().then(role => {
+            console.log(`'${role.role}' successfully saved!`);
+          });
+        } else {
+          console.log(`Role '${role.role}' already exists...`);
+        }
+      })
+      .catch(console.error);
+  });
+  res.status(200).send('Populating roles...');
+}
+
+/**
+ * Autopopulate `Users` collection with dummy testing values
+ * @function
+ * @name autoPopulateUsers
+ * @param req {object} Express request object
+ * @param res {object} Express response object
+ * @param next {function} Express middleware function
+ **/
+function autoPopulateUsers(req, res, next) {
+  const admin = { username: 'admin', password: 'admin', role: 'admin' };
+  const editor = { username: 'editor', password: 'editor', role: 'editor' };
+  const user = { username: 'user', password: 'user' };
+
+  [user, editor, admin].forEach(user => {
+    Users.findOne({ username: user.username })
+      .then(result => {
+        if (!result) {
+          const u = new Users(user);
+          u.save().then(user => {
+            console.log(`'${user.username}' successfully saved!`);
+          });
+        } else {
+          console.log(`User '${user.username}' already exists...`);
+        }
+      })
+      .catch(console.error);
+  });
+  res.status(200).send('Populating users...');
+}
+
+module.exports = router;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="auth_users.module_model.html">model</a></li><li><a href="module-auth_middleware.html">auth/middleware</a></li><li><a href="module-auth_router.html">auth/router</a></li><li><a href="module-middleware_404.html">middleware/404</a></li><li><a href="module-middleware_error.html">middleware/error</a></li><li><a href="module-middleware_model-finder.html">middleware/model-finder</a></li><li><a href="module-src_server.html">src/server</a></li></ul><h3>Classes</h3><ul><li><a href="BooksModel.html">BooksModel</a></li><li><a href="ModelClass.html">ModelClass</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addRole">addRole</a></li><li><a href="global.html#autoPopulateRoles">autoPopulateRoles</a></li><li><a href="global.html#autoPopulateUsers">autoPopulateUsers</a></li><li><a href="global.html#createRecord">createRecord</a></li><li><a href="global.html#deleteRecord">deleteRecord</a></li><li><a href="global.html#forceErr">forceErr</a></li><li><a href="global.html#getAll">getAll</a></li><li><a href="global.html#getUsers">getUsers</a></li><li><a href="global.html#home">home</a></li><li><a href="global.html#patchRecord">patchRecord</a></li><li><a href="global.html#randomRecord">randomRecord</a></li><li><a href="global.html#updateRecord">updateRecord</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Apr 07 2019 20:26:33 GMT-0700 (Pacific Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

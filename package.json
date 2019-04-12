@@ -1,0 +1,44 @@
+{
+  "name": "lab-19-api-server",
+  "version": "0.0.1",
+  "description": "api-server",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "jest --coverage --verbose"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/charmedsatyr-401-advanced-javascript/lab-19-api-server.git"
+  },
+  "author": "CharmedSatyr <z@charmed.tech>",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/charmedsatyr-401-advanced-javascript/lab-19-api-server/issues"
+  },
+  "homepage": "https://github.com/charmedsatyr-401-advanced-javascript/lab-19-api-server#readme",
+  "devDependencies": {
+    "babel-eslint": "^10.0.1",
+    "eslint": "^5.16.0",
+    "jest": "^24.7.1",
+    "jsdoc": "^3.5.5",
+    "mongodb-memory-server": "^5.0.2",
+    "supertest": "^4.0.2"
+  },
+  "dependencies": {
+    "bcrypt": "^3.0.5",
+    "cors": "^2.8.5",
+    "dotenv": "^7.0.0",
+    "express": "^4.16.4",
+    "faker": "^4.1.0",
+    "jsonwebtoken": "^8.5.1",
+    "method-override": "^3.0.0",
+    "mongoose": "^5.5.1",
+    "mongoose-schema-jsonschema": "^1.2.1",
+    "morgan": "^1.9.1",
+    "path": "^0.12.7",
+    "swagger-ui-express": "^4.0.2"
+  }
+}

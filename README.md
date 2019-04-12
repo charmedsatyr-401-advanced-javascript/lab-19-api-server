@@ -67,7 +67,7 @@ This module instantiates the app, sets middleware, routes, and controllers, and 
 This module is under development and is intended for testing purposes. It exports an Express `router` with a single endpoint:
 
 * `POST`
-  * `/api/v1/:model/random` → Generates a random `model` record using the `faker` package
+  * `/api/v1/:model/random` → Generates a random `model` record using the `faker` package. Publishes the request `url` and generated record to the Q `database` namespace.
 
 Currently, the generated record follows the schema of a `Book`, per `./src/models/books/books.schema.js`. However, it should be possible to improve this implementation by requiring a static `generateRandomRecord` method on each model or by dynamically assessing schema requirements before randomization.
 
@@ -77,17 +77,23 @@ Currently, the generated record follows the schema of a `Book`, per `./src/model
 This module exports an Express `router` with dynamic endpoints that correspond to the `model` instance determined by the `modelFinder` module from `./src/middleware/model-finder.js`. Most routes (except `/`) invoke a REST method that manipulates the `model`'s class methods using the data provided to the endpoint in the request as arguments.
 
 * `GET`
-  * `/` → Returns a short welcome message.
-  * `/api/v1/:model` → Returns all `model` records from the database.
-  * `/api/v1/:model/:id` → Returns a `model` record from the database that has the given `id`; expects an `id` parameter.
+  * `/` → Returns a short welcome message. Publishes the request `url` in a `read` event to the `database` namespace of the  message queue.
+
+  * `/api/v1/:model` → Returns all `model` records from the database. Publishes the request `url` and an `id` key with the value of `null` in a `read` event  to the `database` namespace of the message queue.
+
+  * `/api/v1/:model/:id` → Returns a `model` record from the database that has the given `id`; expects an `id` parameter. Publishes the request `url` and `id` parameter in a `read` event to the `database` namespace of the message queue.
+
 * `POST`
-  * `/api/v1/:model` → Creates a new `model` record in the database; expects a JSON object corresponding to the `model` schema in the request body. This route requires the `create` capability.
+  * `/api/v1/:model` → Creates a new `model` record in the database; expects a JSON object corresponding to the `model` schema in the request `body`. This route requires the `create` capability. Publishes the request `url` and body in a `create` event to the `database` namespace of the message queue.
+
 * `PUT`
-  * `/api/v1/:model/:id` → Modifies a `model` record in the database; expects an `id` parameter and a JSON object corresponding to the `model` schema in the request body. If a record with that `id` does not exist, one is created. This route requires the `update` capability.
+  * `/api/v1/:model/:id` → Modifies a `model` record in the database; expects an `id` parameter and a JSON object corresponding to the `model` schema in the request `body`. If a record with that `id` does not exist, one is created. This route requires the `update` capability. Publishes the request `url`, `id` parameter, and body in an `update` event to the `database` namespace of the message queue.
+
 * `PATCH`
-  * `/api/v1/:model/:id` → Modifies a `model` record in the database; expects an `id` parameter and a JSON object corresponding to the `model` schema in the request body. No new records will be created. This route requires the `update` capability.
+  * `/api/v1/:model/:id` → Modifies a `model` record in the database; expects an `id` parameter and a JSON object corresponding to the `model` schema in the request `body`. No new records will be created. This route requires the `update` capability. Publishes the request `url`, `id` parameter, and body in an `update` event to the `database` namespace of the message queue.
+
 * `DELETE`
-  * `/api/v1/:model/:id` → Deletes a `model` record in the database that has the given `id`; expects an `id` parameter. This route requires the `delete` capability.
+  * `/api/v1/:model/:id` → Deletes a `model` record in the database that has the given `id`; expects an `id` parameter. This route requires the `delete` capability. Publishes the request `url` and `id` parameter to in a `delete` event to the `database` namespace of the message queue.
 
 -----
 
@@ -102,10 +108,14 @@ This module is under development and is intended for system administrators and t
 
 * `GET`
   * `/error` → This route forces a server error and is used for testing.
+
   * `/users` → This route logs all user data in the server console.
+
 * `POST`
-  * `/roles` → This route accepts a JSON object corresponding to the `Roles` schema in `./src/auth/roles.schema.js` in the request body. It adds a corresponding `role` to the database and returns the record.  This route requires `read`, `create`, `update`, and `delete` capabilities.
+  * `/roles` → This route accepts a JSON object corresponding to the `Roles` schema in `./src/auth/roles.schema.js` in the request `body`. It adds a corresponding `role` to the database and returns the record.  This route requires `read`, `create`, `update`, and `delete` capabilities.
+
   * `/autopopulate-roles` → This route auto-populates the `roles` collection with standard `admin`, `editor`, and `user` entries with the appropriate capabilities.
+
   * `/autopopulate-users` → This route auto-populates the `Users` collection with dummy `admin`, `editor`, and `user` entries with matching `username`s, `password`s, and `role`s.
 
 -----
@@ -116,7 +126,9 @@ This module provides routes and associated handlers for the following authentica
 
 * `POST`
   * `/signup` → Used to create a new user account; returns an authorization token.
+
   * `/signin` → Used to authenticate a session; returns an authorization token.
+
   * `/key` → Returns a permanent authorization key.
 
 -----
@@ -133,6 +145,7 @@ The returned function splits the user's request headers and uses private functio
 #### `.src/auth/roles.schema.js`
 ##### Exported Values and Methods
 This module defines a Mongoose schema `Roles` with the following properties:
+
 ```
   role: { type: String, required: true },
   capabilities: { type: Array, required: true },
@@ -160,11 +173,15 @@ This collection is virtually joined with the `Roles` collection on their respect
 ##### Exported Values and Methods
 Unknown path fallback middleware.
 
+Publishes the request `url` as an `error` event to the `database` namespace of the message queue.
+
 -----
 
 #### `./src/middleware/500.js`
 ##### Exported Values and Methods
 Server error handling middleware.
+
+Publishes the request `url` and error message in an `error` event to the `dataspace` namespace of the message queue.
 
 -----
 
@@ -221,6 +238,7 @@ This module defines a mongoose schema `books` with the following properties:
 * `SECRET` - The key the application uses for JWT token signing
 * `SINGLE_USE_TOKENS` - Boolean for whether single use tokens are issued
 * `TOKEN_EXPIRE` - The amount of time before JWT tokens expire, expressed in seconds or a string describing a time span [zeit/ms](https://github.com/zeit/ms)
+* `QUEUE_SERVER` - The full URL and port to which publications to the `Q` Message Queue should be directed.
 
 #### Running the app
 * Start a MongoDB database on your local machine that uses the `data` folder.

@@ -7,6 +7,9 @@ const router = require('express').Router();
 const auth = require('../auth/middleware.js');
 const modelFinder = require('../middleware/model-finder.js');
 
+// Instantiate Q client
+const Q = require('@nmq/q/client');
+
 // Dynamically evaluate the model
 router.param('model', modelFinder);
 
@@ -21,6 +24,8 @@ router.delete(`/api/v1/:model/:id`, auth('delete'), deleteRecord);
 
 /**
  * Display a home page
+ * Publish the request `url` as a `read` event to the
+ * `database` namespace of the message queue
  * @function
  * @name home
  * @param req {object} Express request object
@@ -28,11 +33,15 @@ router.delete(`/api/v1/:model/:id`, auth('delete'), deleteRecord);
  * @param next {function} Express middleware function
  **/
 function home(req, res, next) {
+  const { url } = req;
+  Q.publish('database', 'read', { url });
   res.status(200).send('Welcome to the home page!');
 }
 
 /**
  * Get all or one record
+ * Publish the request `url` and `id` parameter as a `read`
+ * event to the `database` namespace of the message queue
  * @function
  * @name getAll
  * @param req {object} Express request object
@@ -40,7 +49,9 @@ function home(req, res, next) {
  * @param next {function} Express middleware function
  **/
 function getRecords(req, res, next) {
+  const { url } = req;
   const { id } = req.params;
+  Q.publish('database', 'read', { id: id || null, url });
   req.model
     .get(id)
     .then(results => res.status(200).send(results))
@@ -49,6 +60,8 @@ function getRecords(req, res, next) {
 
 /**
  * Create a new record
+ * Publish the request `url` and `body` as a `create` event
+ * to the `database` namespace of the message queue
  * @function
  * @name createRecord
  * @param req {object} Express request object
@@ -56,7 +69,8 @@ function getRecords(req, res, next) {
  * @param next {function} Express middleware function
  **/
 function createRecord(req, res, next) {
-  const { body } = req;
+  const { body, url } = req;
+  Q.publish('database', 'create', { body, url });
   req.model
     .post(body)
     .then(result => res.status(200).send(result))
@@ -65,6 +79,9 @@ function createRecord(req, res, next) {
 
 /**
  * Update a record - upserts if the record does not exist
+ * Publish the request `url`, `body`, and `id` parameter as
+ * an `update` event to the `database` namespace of the
+ * message queue
  * @function
  * @name updateRecord
  * @param req {object} Express request object
@@ -72,8 +89,9 @@ function createRecord(req, res, next) {
  * @param next {function} Express middleware function
  **/
 function updateRecord(req, res, next) {
+  const { url, body } = req;
   const { id } = req.params;
-  const { body } = req;
+  Q.publish('database', 'update', { url, body, id });
   req.model
     .put(id, body)
     .then(result => res.status(200).send(result))
@@ -82,6 +100,10 @@ function updateRecord(req, res, next) {
 
 /**
  * Patch a new record - does not upsert
+ * Update a record - upserts if the record does not exist
+ * Publish the request `url`, `body`, and `id` parameter as
+ * an `update` event to the `database` namespace of the
+ * message queue
  * @function
  * @name patchRecord
  * @param req {object} Express request object
@@ -89,8 +111,9 @@ function updateRecord(req, res, next) {
  * @param next {function} Express middleware function
  **/
 function patchRecord(req, res, next) {
+  const { url, body } = req;
   const { id } = req.params;
-  const { body } = req;
+  Q.publish('database', 'update', { url, body, id });
   req.model
     .patch(id, body)
     .then(result => res.status(200).send(result))
@@ -99,6 +122,9 @@ function patchRecord(req, res, next) {
 
 /**
  * Delete a record
+ * Publish the request `url` and `id` parameter as
+ * a `delete` event to the `database` namespace of the
+ * message queue
  * @function
  * @name deleteRecord
  * @param req {object} Express request object
@@ -106,7 +132,9 @@ function patchRecord(req, res, next) {
  * @param next {function} Express middleware function
  **/
 function deleteRecord(req, res, next) {
+  const { url } = req;
   const { id } = req.params;
+  Q.publish('database', 'delete', { id, url });
   req.model
     .delete(id)
     .then(result => res.status(200).send(result))
